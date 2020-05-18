@@ -1,5 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const morgan = require('morgan');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+
 require('dotenv').config()
 
 // Import Routes
@@ -17,11 +21,18 @@ mongoose
   })
   .then(() => console.log("DB Connected"));
 
-// ROUTES MIDDLEWARE
+
+// Middleware
+app.use(morgan('dev'));
+app.use(bodyParser.json());
+app.use(cookieParser());
+  
+// Routes Middleware
 app.use("/api", userRoutes)
 
 
-// SERVER PORT
+
+//======= SERVER ========
 const port = process.env.PORT || 8000
 
 app.listen(port, () => {
