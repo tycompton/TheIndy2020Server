@@ -22,6 +22,11 @@ const productSchema = new mongoose.Schema({
     ref: 'Category',
     required: true
   },
+  brewery: {
+    type: ObjectId,
+    ref: 'Brewery',
+    required: false
+  },
   quantity: {
     type: Number,
   },
@@ -35,7 +40,27 @@ const productSchema = new mongoose.Schema({
   },
   delivery: {
     required: false,
-    type: Boolean
+    type: Boolean 
+  },
+  publish: {
+    required: false,
+    type: Boolean 
+  },
+  available: {
+    required: false,
+    type: Boolean 
+  },
+  vegan: {
+    required: false,
+    type: Boolean 
+  },
+  vegetarian: {
+    required: false,
+    type: Boolean 
+  },
+  size: {
+    required: false,
+    type: Number 
   }
 }, 
 { timestamps: true }
