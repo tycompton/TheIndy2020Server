@@ -7,6 +7,7 @@ const Product = require("../models/product");
 exports.productById = (req, res, next, id) => {
   Product.findById(id)
   .populate('category')
+  .populate('brewery')
   .exec((err, product) => {
     if (err || !product) {
       return res.status(400).json({
@@ -33,10 +34,11 @@ exports.create = (req, res) => {
       });
     }
     // check for all fields
-    const { name, description, price, category, quantity, delivery } = fields;
+    const { name, brewery, description, price, category, quantity, delivery } = fields;
 
     if (
       !name ||
+      !brewery ||
       !description ||
       !price ||
       !category ||
@@ -144,7 +146,8 @@ exports.list = (req, res) => {
 
   Product.find()
     .select("-image")
-    .populate("category")
+    .populate('category')
+    .populate('brewery')
     .sort([[sortBy, order]])
     .limit(limit)
     .exec((err, products) => {
@@ -164,6 +167,7 @@ exports.listRelated = (req, res) => {
   Product.find({ _id: { $ne: req.product }, category: req.product.category })
     .limit(limit)
     .populate("category", "_id name")
+    .populate("brewery", "_id name")
     .exec((err, products) => {
       if (err) {
         return res.status(400).json({
@@ -172,7 +176,7 @@ exports.listRelated = (req, res) => {
       }
       res.json(products);
     });
-};
+}; 
 
 
 exports.listCategories = (req, res) => {
@@ -190,7 +194,7 @@ exports.listCategories = (req, res) => {
 exports.listBySearch = (req, res) => {
   let order = req.body.order ? req.body.order : "desc";
   let sortBy = req.body.sortBy ? req.body.sortBy : "_id";
-  let limit = req.body.limit ? parseInt(req.body.limit) : 100;
+  let limit = req.body.limit ? parseInt(req.body.limit) : 500;
   let skip = parseInt(req.body.skip);
   let findArgs = {};
 
@@ -215,6 +219,7 @@ exports.listBySearch = (req, res) => {
   Product.find(findArgs)
     .select("-image")
     .populate("category")
+    .populate("brewery")
     .sort([[sortBy, order]])
     .skip(skip)
     .limit(limit)
@@ -237,7 +242,7 @@ exports.image = (req, res, next) => {
     return res.send(req.product.image.data);
   }
   next();
-};
+}; 
 
 exports.listSearch = (req, res) => {
   // create query object to hold source value and category value
@@ -259,4 +264,25 @@ exports.listSearch = (req, res) => {
       res.json(products);
     }).select('-image');
   }
+};
+
+
+exports.decreaseQuantity = (req, res, next) => {
+  let bulkOps = req.body.order.products.map((item) => {
+    return {
+      updateOne: {
+        filter: { _id: item._id },
+        update: { $inc: { quantity: -item.count, sold: +item.count } },
+      },
+    };
+  });
+  
+  Product.bulkWrite(bulkOps, {}, (error, products) => {
+    if (error) {
+      return res.status(400).json({
+        error: "Could not update product",
+      });
+    }
+    next();
+  });
 };

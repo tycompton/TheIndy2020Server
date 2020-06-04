@@ -7,7 +7,7 @@ const {
   read, 
   remove, 
   update, 
-  list, 
+  list,  
   listSearch,
   listRelated, 
   listCategories, 
@@ -33,4 +33,4 @@ router.get('/product/image/:productId', image);
 router.param("userId", userById);
 router.param("productId", productById);
 
-module.exports = router;
+module.exports = router; 

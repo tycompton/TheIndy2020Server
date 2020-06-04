@@ -20,12 +20,12 @@ const productSchema = new mongoose.Schema({
   category: {
     type: ObjectId,
     ref: 'Category',
-    required: true
+    required: true 
   },
   brewery: {
     type: ObjectId,
     ref: 'Brewery',
-    required: false
+    required: true
   },
   quantity: {
     type: Number,
@@ -40,7 +40,7 @@ const productSchema = new mongoose.Schema({
   },
   delivery: {
     required: false,
-    type: Boolean 
+    type: Boolean  
   },
   publish: {
     required: false,
