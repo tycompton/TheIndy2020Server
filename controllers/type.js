@@ -1,21 +1,21 @@
-const Brewery = require("../models/brewery");
+const Type = require("../models/type");
 const { errorHandler } = require("../helpers/dbErrorHandler");
 
-exports.breweryById = (req, res, next, id) => {
-  Brewery.findById(id).exec((err, brewery) => {
-    if (err || !brewery) {
+exports.typeById = (req, res, next, id) => {
+  Type.findById(id).exec((err, type) => {
+    if (err || !type) {
       return res.status(400).json({
-        error: "Brewery does not exist",
+        error: "Type does not exist",
       });
     }
-    req.brewery = brewery;
+    req.type = type;
     next();
   });
 };
 
 exports.create = (req, res) => {
-  const brewery = new Brewery(req.body);
-  brewery.save((err, data) => {
+  const type = new Type(req.body);
+  type.save((err, data) => {
     if (err) {
       return res.status(400).json({
         error: errorHandler(err),
@@ -23,16 +23,17 @@ exports.create = (req, res) => {
     }
     res.json({ data });
   });
-}; 
+};
+ 
 
 exports.read = (req, res) => {
-  return res.json(req.brewery);
+  return res.json(req.type);
 };
 
 exports.update = (req, res) => {
-  const brewery = req.brewery;
-  brewery.name = req.body.name;
-  brewery.save((err, data) => {
+  const type = req.type;
+  type.name = req.body.name;
+  type.save((err, data) => {
     if (err) {
       return res.status(400).json({
         error: errorHandler(err),
@@ -43,21 +44,21 @@ exports.update = (req, res) => {
 };
 
 exports.remove = (req, res) => {
-  const brewery = req.brewery;
-  brewery.remove((err, data) => {
+  const type = req.type;
+  type.remove((err, data) => {
     if (err) {
       return res.status(400).json({
         error: errorHandler(err),
       });
     }
     res.json({
-      message: "Brewery deleted"
+      message: "Type deleted"
     });
   });
 };
- 
+
 exports.list = (req, res) => {
-  Brewery.find().exec((err, data) => {
+  Type.find().exec((err, data) => {
     if (err) {
       return res.status(400).json({
         error: errorHandler(err),

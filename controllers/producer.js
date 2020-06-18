@@ -1,21 +1,21 @@
-const Brewery = require("../models/brewery");
+const Producer = require("../models/producer");
 const { errorHandler } = require("../helpers/dbErrorHandler");
 
-exports.breweryById = (req, res, next, id) => {
-  Brewery.findById(id).exec((err, brewery) => {
-    if (err || !brewery) {
+exports.producerById = (req, res, next, id) => {
+  Producer.findById(id).exec((err, producer) => {
+    if (err || !producer) {
       return res.status(400).json({
-        error: "Brewery does not exist",
+        error: "Producer does not exist",
       });
     }
-    req.brewery = brewery;
+    req.producer = producer;
     next();
   });
 };
 
 exports.create = (req, res) => {
-  const brewery = new Brewery(req.body);
-  brewery.save((err, data) => {
+  const producer = new Producer(req.body);
+  producer.save((err, data) => {
     if (err) {
       return res.status(400).json({
         error: errorHandler(err),
@@ -24,15 +24,15 @@ exports.create = (req, res) => {
     res.json({ data });
   });
 }; 
-
+ 
 exports.read = (req, res) => {
-  return res.json(req.brewery);
+  return res.json(req.producer);
 };
 
 exports.update = (req, res) => {
-  const brewery = req.brewery;
-  brewery.name = req.body.name;
-  brewery.save((err, data) => {
+  const producer = req.producer;
+  producer.name = req.body.name;
+  producer.save((err, data) => {
     if (err) {
       return res.status(400).json({
         error: errorHandler(err),
@@ -43,21 +43,21 @@ exports.update = (req, res) => {
 };
 
 exports.remove = (req, res) => {
-  const brewery = req.brewery;
-  brewery.remove((err, data) => {
+  const producer = req.producer;
+  producer.remove((err, data) => {
     if (err) {
       return res.status(400).json({
         error: errorHandler(err),
       });
     }
     res.json({
-      message: "Brewery deleted"
+      message: "Producer deleted"
     });
   });
 };
- 
+
 exports.list = (req, res) => {
-  Brewery.find().exec((err, data) => {
+  Producer.find().exec((err, data) => {
     if (err) {
       return res.status(400).json({
         error: errorHandler(err),
@@ -65,4 +65,4 @@ exports.list = (req, res) => {
     }
     res.json(data);
   });
-};
+}; 
