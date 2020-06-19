@@ -16,6 +16,7 @@ const typeRoutes = require('./routes/type');
 const breweryRoutes = require('./routes/brewery');
 const producerRoutes = require('./routes/producer');
 const productRoutes = require('./routes/product');
+const productWines = require('./routes/wine');
 const braintreeRoutes = require('./routes/braintree');
 const orderRoutes = require('./routes/order');
 
@@ -46,6 +47,7 @@ app.use("/api", typeRoutes);
 app.use("/api", breweryRoutes);
 app.use("/api", producerRoutes);
 app.use("/api", productRoutes);
+app.use("/api", productWines);
 app.use("/api", braintreeRoutes);
 app.use("/api", orderRoutes);
 

@@ -2,26 +2,26 @@ const formidable = require('formidable');
 const _ = require("lodash");
 const fs = require('fs');
 const { errorHandler } = require("../helpers/dbErrorHandler");
-const Product = require("../models/product");
+const Wine = require("../models/wine");
 
-exports.productById = (req, res, next, id) => {
-  Product.findById(id)
-  .populate('category')
-  .populate('brewery')
-  .exec((err, product) => {
-    if (err || !product) {
+exports.wineById = (req, res, next, id) => {
+  Wine.findById(id)
+  .populate('type')
+  .populate('producer')
+  .exec((err, wine) => {
+    if (err || !wine) {
       return res.status(400).json({
         error: "Product not found",
       });
     }
-    req.product = product;
+    req.wine = wine;
     next();
   });
 };
 
 exports.read = (req, res) => {
-  req.product.image = undefined
-  return res.json(req.product);
+  req.wine.image = undefined
+  return res.json(req.wine);
 };
 
 exports.create = (req, res) => {
@@ -34,14 +34,14 @@ exports.create = (req, res) => {
       });
     }
     // check for all fields
-    const { name, brewery, description, price, category, quantity, delivery } = fields;
+    const { name, producer, description, price, type, quantity, delivery } = fields;
 
     if (
       !name ||
-      !brewery ||
+      !producer ||
       !description ||
       !price ||
-      !category ||
+      !type ||
       !quantity ||
       !delivery
     ) {
@@ -50,7 +50,7 @@ exports.create = (req, res) => {
       });
     }
 
-    let product = new Product(fields);
+    let wine = new Wine(fields);
 
     if (files.image) {
       if (files.image.size > 1000000) {
@@ -58,11 +58,11 @@ exports.create = (req, res) => {
           error: "Image should be less than 1mb in size",
         });
       }
-      product.image.data = fs.readFileSync(files.image.path);
-      product.image.contentType = files.image.type;
+      wine.image.data = fs.readFileSync(files.image.path);
+      wine.image.contentType = files.image.type;
     }
 
-    product.save((err, result) => {
+    wine.save((err, result) => {
       if (err) {
         return res.status(400).json({
           error: errorHandler(err),
@@ -74,8 +74,8 @@ exports.create = (req, res) => {
 };
 
 exports.remove = (req, res) => {
-  let product = req.product;
-  product.remove((err, deletedProduct) => {
+  let wine = req.wine;
+  wine.remove((err, deletedProduct) => {
     if (err) {
       return res.status(400).json({
         error: errorHandler(err),
@@ -112,8 +112,8 @@ exports.update = (req, res) => {
     //   });
     // }
 
-    let product = req.product;
-    product = _.extend(product, fields)
+    let wine = req.wine;
+    wine = _.extend(wine, fields)
 
     if (files.image) {
       if (files.image.size > 1000000) {
@@ -121,11 +121,11 @@ exports.update = (req, res) => {
           error: "Image should be less than 1mb in size",
         });
       }
-      product.image.data = fs.readFileSync(files.image.path);
-      product.image.contentType = files.image.type;
+      wine.image.data = fs.readFileSync(files.image.path);
+      wine.image.contentType = files.image.type;
     }
 
-    product.save((err, result) => {
+    wine.save((err, result) => {
       if (err) {
         return res.status(400).json({
           error: errorHandler(err),
@@ -144,19 +144,19 @@ exports.list = (req, res) => {
   let sortBy = req.query.sortBy ? req.query.sortBy : "_id";
   let limit = req.query.limit ? parseInt(req.query.limit) : 6;
 
-  Product.find()
+  Wine.find()
     .select("-image")
-    .populate('category')
-    .populate('brewery')
+    .populate('type')
+    .populate('producer')
     .sort([[sortBy, order]])
     .limit(limit)
-    .exec((err, products) => {
+    .exec((err, wines) => {
       if (err) {
         return res.status(400).json({
-          error: "Products not found",
+          error: "Product not found",
         });
       }
-      res.json(products);
+      res.json(wines);
     });
 };
 
@@ -164,29 +164,29 @@ exports.list = (req, res) => {
 exports.listRelated = (req, res) => {
   let limit = req.query.limit ? parseInt(req.query.limit) : 6;
 
-  Product.find({ _id: { $ne: req.product }, category: req.product.category })
+  Wine.find({ _id: { $ne: req.wine }, type: req.wine.type })
     .limit(limit)
-    .populate("category", "_id name")
-    .populate("brewery", "_id name")
-    .exec((err, products) => {
+    .populate("type", "_id name")
+    .populate("producer", "_id name")
+    .exec((err, wines) => {
       if (err) {
         return res.status(400).json({
           error: "Products not found",
         });
       }
-      res.json(products);
+      res.json(wines);
     });
 }; 
 
 
-exports.listCategories = (req, res) => {
-  Product.distinct("category", {}, (err, categories) => {
+exports.listTypes = (req, res) => {
+  Wine.distinct("type", {}, (err, types) => {
     if (err) {
       return res.status(400).json({
-        error: "categories not found",
+        error: "types not found",
       });
     }
-    res.json(categories)
+    res.json(types)
   })
 }
 
@@ -216,10 +216,10 @@ exports.listBySearch = (req, res) => {
     }
   }
  
-  Product.find(findArgs)
+  Wine.find(findArgs)
     .select("-image")
-    .populate("category")
-    .populate("brewery")
+    .populate("type")
+    .populate("producer")
     .sort([[sortBy, order]])
     .skip(skip)
     .limit(limit)
@@ -237,9 +237,9 @@ exports.listBySearch = (req, res) => {
 };
 
 exports.image = (req, res, next) => {
-  if (req.product.image.data) {
-    res.set("Content-Type", req.product.image.contentType);
-    return res.send(req.product.image.data);
+  if (req.wine.image.data) {
+    res.set("Content-Type", req.wine.image.contentType);
+    return res.send(req.wine.image.data);
   }
   next();
 }; 
@@ -251,24 +251,24 @@ exports.listSearch = (req, res) => {
   if (req.query.search) {
     query.name = { $regex: req.query.search, $options: "i" };
     // assign category value to query.category
-    if (req.query.category && req.query.category != "All") {
-      query.category = req.query.category;
+    if (req.query.type && req.query.type != "All") {
+      query.type = req.query.type;
     }
     // find product based on query object with 2 properties
-    Product.find(query, (err, products) => {
+    Wine.find(query, (err, wines) => {
       if (err) {
         return res.status(400).json({
           error: errorHandler(err),
         });
       }
-      res.json(products);
+      res.json(wines);
     }).select('-image');
   }
 }; 
 
 
 exports.decreaseQuantity = (req, res, next) => {
-  let bulkOps = req.body.order.products.map((item) => {
+  let bulkOps = req.body.order.wines.map((item) => {
     return {
       updateOne: {
         filter: { _id: item._id },
@@ -277,7 +277,7 @@ exports.decreaseQuantity = (req, res, next) => {
     };
   });
   
-  Product.bulkWrite(bulkOps, {}, (error, products) => {
+  Wine.bulkWrite(bulkOps, {}, (error, wines) => {
     if (error) {
       return res.status(400).json({
         error: "Could not update product",
