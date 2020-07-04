@@ -8,6 +8,8 @@ exports.productById = (req, res, next, id) => {
   Product.findById(id)
   .populate('category')
   .populate('brewery')
+  .populate("type")
+    .populate("producer")
   .exec((err, product) => {
     if (err || !product) {
       return res.status(400).json({
@@ -16,7 +18,7 @@ exports.productById = (req, res, next, id) => {
     }
     req.product = product;
     next();
-  });
+  }); 
 };
 
 exports.read = (req, res) => {
@@ -34,19 +36,17 @@ exports.create = (req, res) => {
       });
     }
     // check for all fields
-    const { name, brewery, description, price, category, quantity, delivery } = fields;
+    const { name, description, price, quantity, delivery } = fields;
 
     if (
       !name ||
-      !brewery ||
       !description ||
       !price ||
-      !category ||
       !quantity ||
       !delivery
     ) {
       return res.status(400).json({
-        error: "All fields are required",
+        error: "Name, description, price, quantity and delivery fields are required",
       });
     }
 
@@ -148,6 +148,8 @@ exports.list = (req, res) => {
     .select("-image")
     .populate('category')
     .populate('brewery')
+    .populate("type")
+    .populate("producer")
     .sort([[sortBy, order]])
     .limit(limit)
     .exec((err, products) => {
@@ -168,6 +170,8 @@ exports.listRelated = (req, res) => {
     .limit(limit)
     .populate("category", "_id name")
     .populate("brewery", "_id name")
+    .populate("type", "_id name")
+    .populate("producer", "_id name")
     .exec((err, products) => {
       if (err) {
         return res.status(400).json({
@@ -186,7 +190,7 @@ exports.listCategories = (req, res) => {
         error: "categories not found",
       });
     }
-    res.json(categories)
+    res.json(categories) 
   })
 }
 
@@ -214,12 +218,14 @@ exports.listBySearch = (req, res) => {
         findArgs[key] = req.body.filters[key];
       }
     }
-  }
+  } 
  
   Product.find(findArgs)
     .select("-image")
     .populate("category")
     .populate("brewery")
+    .populate("type")
+    .populate("producer")
     .sort([[sortBy, order]])
     .skip(skip)
     .limit(limit)
@@ -235,6 +241,101 @@ exports.listBySearch = (req, res) => {
       });
     });
 };
+
+exports.listBySearchBeers = (req, res) => {
+  let order = req.body.order ? req.body.order : "desc";
+  let sortBy = req.body.sortBy ? req.body.sortBy : "_id";
+  let limit = req.body.limit ? parseInt(req.body.limit) : 500;
+  let skip = parseInt(req.body.skip);
+  let findArgs = {};
+
+  // console.log(order, sortBy, limit, skip, req.body.filters);
+  // console.log("findArgs", findArgs);
+
+  for (let key in req.body.filters) {
+    if (req.body.filters[key].length > 0) {
+      if (key === "price") {
+        // gte -  greater than price [0-10]
+        // lte - less than
+        findArgs[key] = {
+          $gte: req.body.filters[key][0],
+          $lte: req.body.filters[key][1],
+        };
+      } else {
+        findArgs[key] = req.body.filters[key];
+      }
+    }
+  } 
+ 
+  Product.find(findArgs)
+    .select("-image")
+    .populate("category")
+    .populate("brewery")
+    .populate("type")
+    .populate("producer")
+    .sort([[sortBy, order]])
+    .skip(skip)
+    .limit(limit)
+    .exec((err, data) => {
+      if (err) {
+        return res.status(400).json({
+          error: "Products not found",
+        });
+      }
+      res.json({
+        size: data.length,
+        data,
+      });
+    });
+};
+
+exports.listBySearchWines = (req, res) => {
+  let order = req.body.order ? req.body.order : "desc";
+  let sortBy = req.body.sortBy ? req.body.sortBy : "_id";
+  let limit = req.body.limit ? parseInt(req.body.limit) : 500;
+  let skip = parseInt(req.body.skip);
+  let findArgs = {};
+
+  // console.log(order, sortBy, limit, skip, req.body.filters);
+  // console.log("findArgs", findArgs);
+
+  for (let key in req.body.filters) {
+    if (req.body.filters[key].length > 0) {
+      if (key === "price") {
+        // gte -  greater than price [0-10]
+        // lte - less than
+        findArgs[key] = {
+          $gte: req.body.filters[key][0],
+          $lte: req.body.filters[key][1],
+        };
+      } else {
+        findArgs[key] = req.body.filters[key];
+      }
+    }
+  } 
+ 
+  Product.find(findArgs)
+    .select("-image")
+    .populate("category")
+    .populate("brewery")
+    .populate("type")
+    .populate("producer")
+    .sort([[sortBy, order]])
+    .skip(skip)
+    .limit(limit)
+    .exec((err, data) => {
+      if (err) {
+        return res.status(400).json({
+          error: "Products not found",
+        });
+      }
+      res.json({
+        size: data.length,
+        data,
+      });
+    });
+};
+
 
 exports.image = (req, res, next) => {
   if (req.product.image.data) {

@@ -216,7 +216,7 @@ exports.listBySearch = (req, res) => {
     }
   }
  
-  Wine.find(findArgs)
+  Wine.find(findArgs) 
     .select("-image")
     .populate("type")
     .populate("producer")

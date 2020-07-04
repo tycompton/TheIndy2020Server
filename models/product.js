@@ -19,13 +19,19 @@ const productSchema = new mongoose.Schema({
   },
   category: {
     type: ObjectId,
-    ref: 'Category',
-    required: true 
+    ref: 'Category'
   },
   brewery: {
     type: ObjectId,
-    ref: 'Brewery',
-    required: true
+    ref: 'Brewery'
+  },
+  producer: {
+    type: ObjectId,
+    ref: 'Producer'
+  },
+  type: {
+    type: ObjectId,
+    ref: 'Type'
   },
   quantity: {
     type: Number,
